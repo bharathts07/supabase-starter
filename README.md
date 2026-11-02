@@ -9,3 +9,5 @@
 7. [Sign in, then ask again](docs/07-sign-in.md)
 8. [Ask from a page](docs/08-browser.md)
 9. [Two owners](docs/09-two-owners.md)
+10. [service_role](docs/10-service-role.md)
+11. [Movements](docs/11-movements.md)
