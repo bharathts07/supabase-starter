@@ -6,3 +6,4 @@
 4. [Create the items table](docs/04-items.md)
 5. [Ask for the row](docs/05-no-policies.md)
 6. [Let the owner through](docs/06-owner-policy.md)
+7. [Sign in, then ask again](docs/07-sign-in.md)
