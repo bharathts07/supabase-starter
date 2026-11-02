@@ -7,3 +7,5 @@
 5. [Ask for the row](docs/05-no-policies.md)
 6. [Let the owner through](docs/06-owner-policy.md)
 7. [Sign in, then ask again](docs/07-sign-in.md)
+8. [Ask from a page](docs/08-browser.md)
+9. [Two owners](docs/09-two-owners.md)

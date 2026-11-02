@@ -39,3 +39,5 @@ The response is HTTP 200:
 ```
 
 Same address, same `apikey`. The access token is what lets the owner policies match Ada.
+
+[browser/index.html](../browser/index.html) runs these two calls and keeps the token. See [docs/08-browser.md](08-browser.md).

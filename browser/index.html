@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>inventory-lab</title>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 0; line-height: 1.5; color: #1a1a1a; }
+    main { max-width: 52rem; margin: 2rem auto; padding: 0 1.25rem; }
+    h1 { font-size: 1.6rem; margin: 0 0 0.75rem; }
+    h2 { font-size: 1.05rem; margin: 1.4rem 0 0.35rem; }
+    p { margin: 0.35rem 0 0.75rem; }
+    code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.92em; }
+    button { font: inherit; padding: 0.45rem 0.9rem; margin-top: 0.25rem; }
+    .cols { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1.25rem; }
+    section h2 { margin-top: 0; }
+    pre { background: #f4f4f4; padding: 0.9rem 1rem; overflow: auto; margin: 0; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.85rem; line-height: 1.45; }
+    @media (min-width: 800px) { .cols { grid-template-columns: 1fr 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+  <h1>items</h1>
+  <p>Press the button. The page then asks for the same rows three times. Nothing is sent before that.</p>
+
+  <h2>Address</h2>
+  <p><code>GET /rest/v1/items?select=name,sku,quantity</code></p>
+  <p>That is the Data API for the <code>public.items</code> table. <code>select</code> asks for those three columns. The address is the same in every column.</p>
+
+  <h2>Headers</h2>
+  <p><code>apikey</code> is the publishable key. It names this project. It is the same in all three columns.</p>
+  <p><code>Authorization</code> says who is asking. That header is the only difference.</p>
+
+  <h2>Visitor</h2>
+  <p>The visitor sends the publishable key as <code>Authorization</code>. There is no signed-in person, so the API uses the <code>anon</code> login. Row level security is on, and no policy names <code>anon</code>. The request is accepted and the list is empty. HTTP 200 with <code>[]</code> means the call worked, and no rows were returned.</p>
+
+  <h2>Ada and Bea</h2>
+  <p>Each of them is signed in first. The page posts the email and password to <code>/auth/v1/token?grant_type=password</code>, still with the publishable key as <code>apikey</code>. The response carries an access token. That token is sent as <code>Authorization</code> on the items request. The API uses the <code>authenticated</code> login and sets <code>auth.uid()</code> to the account id inside the token.</p>
+
+  <h2>Why the lists differ</h2>
+  <p>The policies keep a row when <code>owner_id</code> equals <code>auth.uid()</code>. Ada's id owns the Notebook and the Pen. Bea's id owns the Stapler. The two tokens carry different ids, so the two lists are different. Neither person receives the other's rows.</p>
+  <button id="run">Ask all three ways</button>
+  <div class="cols">
+    <section>
+      <h2>Visitor</h2>
+      <p><code>Authorization</code> is the publishable key. The login is <code>anon</code>.</p>
+      <pre id="visitor">Press the button.</pre>
+    </section>
+    <section>
+      <h2>Ada</h2>
+      <p>Signed in as <code>ada@inventory.test</code>. <code>auth.uid()</code> is her account id.</p>
+      <pre id="ada">Press the button.</pre>
+    </section>
+    <section>
+      <h2>Bea</h2>
+      <p>Signed in as <code>bea@inventory.test</code>. <code>auth.uid()</code> is her account id.</p>
+      <pre id="bea">Press the button.</pre>
+    </section>
+  </div>
+  </main>
+  <script>
+    const projectUrl = "https://bxuwbytxaoftlsurzblj.supabase.co";
+    const publishableKey = "sb_publishable_zQKxYLKXuEnPG4OCJHZSYg_aT6R71Af";
+    const itemsUrl = projectUrl + "/rest/v1/items?select=name,sku,quantity&order=name.asc";
+
+    async function ask(authorization) {
+      const response = await fetch(itemsUrl, {
+        headers: {
+          apikey: publishableKey,
+          Authorization: "Bearer " + authorization,
+        },
+      });
+      const text = await response.text();
+      let body = text;
+      try {
+        body = JSON.stringify(JSON.parse(text), null, 2);
+      } catch (error) {
+        body = text;
+      }
+      return "HTTP " + response.status + "\n\n" + body;
+    }
+
+    async function signIn(email, password) {
+      const response = await fetch(projectUrl + "/auth/v1/token?grant_type=password", {
+        method: "POST",
+        headers: {
+          apikey: publishableKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: email, password: password }),
+      });
+      const session = await response.json();
+      if (!session.access_token) {
+        throw new Error("HTTP " + response.status + "\n\n" + JSON.stringify(session, null, 2));
+      }
+      return session.access_token;
+    }
+
+    async function showSignedIn(elementId, email, password) {
+      try {
+        const accessToken = await signIn(email, password);
+        document.getElementById(elementId).textContent = await ask(accessToken);
+      } catch (error) {
+        document.getElementById(elementId).textContent = error.message;
+      }
+    }
+
+    async function showAll() {
+      document.getElementById("visitor").textContent = "Asking.";
+      document.getElementById("ada").textContent = "Signing in.";
+      document.getElementById("bea").textContent = "Signing in.";
+      document.getElementById("visitor").textContent = await ask(publishableKey);
+      await showSignedIn("ada", "ada@inventory.test", "ada-password");
+      await showSignedIn("bea", "bea@inventory.test", "bea-password");
+    }
+
+    document.getElementById("run").addEventListener("click", async function () {
+      this.disabled = true;
+      try {
+        await showAll();
+      } finally {
+        this.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
