@@ -8,6 +8,8 @@ The update lines are the same. The shape around them is different so each result
 
 `rollback` undoes the change. Replace Ada's `rollback` with `commit` to keep 3.
 
+On [browser/index.html](../browser/index.html), **Ada subtracts one** keeps the new quantity. **Bea subtracts one** sends the same kind of change and the response is `[]`. Press **Ask all three ways** to read the stored number.
+
 The update policy is in [supabase/migrations/20261102002000_owner_items_policies.sql](../supabase/migrations/20261102002000_owner_items_policies.sql). `using` decides which existing rows the statement can touch. `with check` decides whether the row is allowed after the change. This statement changes `quantity` and leaves the owner as it was.
 
 ```sql

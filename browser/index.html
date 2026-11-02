@@ -57,6 +57,14 @@
     </section>
   </div>
 
+  <h2>Change the number on hand</h2>
+  <p>These buttons send <code>PATCH /rest/v1/items</code> for the Notebook. The body sets <code>quantity</code> to one less than the current number. Ada can see the row, so her change is kept. Bea cannot see the row, so her change updates nothing and the number stays. Ask all three ways afterward to read the stored number.</p>
+  <p>
+    <button id="ada-subtract" type="button">Ada subtracts one</button>
+    <button id="bea-subtract" type="button">Bea subtracts one</button>
+  </p>
+  <pre id="update-result">Press a button.</pre>
+
   <h2>Movements</h2>
   <p>The same three callers then ask <code>GET /rest/v1/movements?select=quantity_change,items(name)</code>. A movement is a quantity change for an item that person already sees. Ada's list is <code>-1</code> on the Notebook. Bea's list is empty. The visitor's list is empty.</p>
   <div class="cols">
@@ -77,7 +85,9 @@
   <script>
     const projectUrl = "https://bxuwbytxaoftlsurzblj.supabase.co";
     const publishableKey = "sb_publishable_zQKxYLKXuEnPG4OCJHZSYg_aT6R71Af";
+    const notebookId = "22222222-2222-2222-2222-222222222222";
     const itemsUrl = projectUrl + "/rest/v1/items?select=name,sku,quantity&order=name.asc";
+    const notebookUrl = projectUrl + "/rest/v1/items?id=eq." + notebookId + "&select=name,quantity";
     const movementsUrl = projectUrl + "/rest/v1/movements?select=quantity_change,items(name)";
 
     async function ask(url, authorization) {
@@ -137,6 +147,40 @@
       await showSignedIn("bea@inventory.test", "bea-password", "bea", "bea-movements");
     }
 
+    async function patchNotebook(authorization, quantity) {
+      const response = await fetch(notebookUrl, {
+        method: "PATCH",
+        headers: {
+          apikey: publishableKey,
+          Authorization: "Bearer " + authorization,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ quantity: quantity }),
+      });
+      const text = await response.text();
+      let body = text;
+      try {
+        body = JSON.stringify(JSON.parse(text), null, 2);
+      } catch (error) {
+        body = text;
+      }
+      return "HTTP " + response.status + "\n\n" + body;
+    }
+
+    async function subtractOne(email, password) {
+      const accessToken = await signIn(email, password);
+      const currentText = await ask(notebookUrl, accessToken);
+      const rows = JSON.parse(currentText.slice(currentText.indexOf("[")));
+      if (rows.length === 0) {
+        document.getElementById("update-result").textContent =
+          await patchNotebook(accessToken, 0);
+        return;
+      }
+      document.getElementById("update-result").textContent =
+        await patchNotebook(accessToken, rows[0].quantity - 1);
+    }
+
     document.getElementById("run").addEventListener("click", async function () {
       this.disabled = true;
       try {
@@ -145,6 +189,21 @@
         this.disabled = false;
       }
     });
+
+    for (const button of [document.getElementById("ada-subtract"), document.getElementById("bea-subtract")]) {
+      button.addEventListener("click", async function () {
+        this.disabled = true;
+        try {
+          const email = this.id === "ada-subtract" ? "ada@inventory.test" : "bea@inventory.test";
+          const password = this.id === "ada-subtract" ? "ada-password" : "bea-password";
+          await subtractOne(email, password);
+        } catch (error) {
+          document.getElementById("update-result").textContent = error.message;
+        } finally {
+          this.disabled = false;
+        }
+      });
+    }
   </script>
 </body>
 </html>
