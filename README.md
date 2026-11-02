@@ -5,3 +5,4 @@
 3. [What the MCP server can do](docs/03-mcp-tools.md)
 4. [Create the items table](docs/04-items.md)
 5. [Ask for the row](docs/05-no-policies.md)
+6. [Let the owner through](docs/06-owner-policy.md)
