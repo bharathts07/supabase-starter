@@ -11,3 +11,4 @@
 9. [Two owners](docs/09-two-owners.md)
 10. [service_role](docs/10-service-role.md)
 11. [Movements](docs/11-movements.md)
+12. [Update the quantity](docs/12-update-quantity.md)

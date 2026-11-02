@@ -20,7 +20,7 @@
 <body>
   <main>
   <h1>items</h1>
-  <p>Press the button. The page then asks for the same rows three times. Nothing is sent before that.</p>
+  <p>Press the button. The page then asks for items three times, and for movements three times. Nothing is sent before that.</p>
 
   <h2>Address</h2>
   <p><code>GET /rest/v1/items?select=name,sku,quantity</code></p>
@@ -56,14 +56,32 @@
       <pre id="bea">Press the button.</pre>
     </section>
   </div>
+
+  <h2>Movements</h2>
+  <p>The same three callers then ask <code>GET /rest/v1/movements?select=quantity_change,items(name)</code>. A movement is a quantity change for an item that person already sees. Ada's list is <code>-1</code> on the Notebook. Bea's list is empty. The visitor's list is empty.</p>
+  <div class="cols">
+    <section>
+      <h2>Visitor</h2>
+      <pre id="visitor-movements">Press the button.</pre>
+    </section>
+    <section>
+      <h2>Ada</h2>
+      <pre id="ada-movements">Press the button.</pre>
+    </section>
+    <section>
+      <h2>Bea</h2>
+      <pre id="bea-movements">Press the button.</pre>
+    </section>
+  </div>
   </main>
   <script>
     const projectUrl = "https://bxuwbytxaoftlsurzblj.supabase.co";
     const publishableKey = "sb_publishable_zQKxYLKXuEnPG4OCJHZSYg_aT6R71Af";
     const itemsUrl = projectUrl + "/rest/v1/items?select=name,sku,quantity&order=name.asc";
+    const movementsUrl = projectUrl + "/rest/v1/movements?select=quantity_change,items(name)";
 
-    async function ask(authorization) {
-      const response = await fetch(itemsUrl, {
+    async function ask(url, authorization) {
+      const response = await fetch(url, {
         headers: {
           apikey: publishableKey,
           Authorization: "Bearer " + authorization,
@@ -95,22 +113,28 @@
       return session.access_token;
     }
 
-    async function showSignedIn(elementId, email, password) {
+    async function showSignedIn(email, password, itemsId, movementsId) {
       try {
         const accessToken = await signIn(email, password);
-        document.getElementById(elementId).textContent = await ask(accessToken);
+        document.getElementById(itemsId).textContent = await ask(itemsUrl, accessToken);
+        document.getElementById(movementsId).textContent = await ask(movementsUrl, accessToken);
       } catch (error) {
-        document.getElementById(elementId).textContent = error.message;
+        document.getElementById(itemsId).textContent = error.message;
+        document.getElementById(movementsId).textContent = error.message;
       }
     }
 
     async function showAll() {
       document.getElementById("visitor").textContent = "Asking.";
+      document.getElementById("visitor-movements").textContent = "Asking.";
       document.getElementById("ada").textContent = "Signing in.";
+      document.getElementById("ada-movements").textContent = "Signing in.";
       document.getElementById("bea").textContent = "Signing in.";
-      document.getElementById("visitor").textContent = await ask(publishableKey);
-      await showSignedIn("ada", "ada@inventory.test", "ada-password");
-      await showSignedIn("bea", "bea@inventory.test", "bea-password");
+      document.getElementById("bea-movements").textContent = "Signing in.";
+      document.getElementById("visitor").textContent = await ask(itemsUrl, publishableKey);
+      document.getElementById("visitor-movements").textContent = await ask(movementsUrl, publishableKey);
+      await showSignedIn("ada@inventory.test", "ada-password", "ada", "ada-movements");
+      await showSignedIn("bea@inventory.test", "bea-password", "bea", "bea-movements");
     }
 
     document.getElementById("run").addEventListener("click", async function () {

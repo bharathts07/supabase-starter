@@ -2,6 +2,8 @@
 
 Apply [supabase/migrations/20261102032800_create_movements.sql](../supabase/migrations/20261102032800_create_movements.sql).
 
+[browser/index.html](../browser/index.html) asks for these rows with the same button as the items. Ada's list is `-1` on the Notebook. Bea's list is empty. The visitor's list is empty.
+
 A movement is a recorded change to an item. The row stores `item_id` and `quantity_change`. It does not store an owner, and it does not change `items.quantity`.
 
 `item_id uuid not null references public.items (id) on delete cascade` means the value must be an `items.id`. Deleting that item deletes its movements.
