@@ -12,5 +12,8 @@
 10. [service_role](docs/10-service-role.md)
 11. [Movements](docs/11-movements.md)
 12. [Update the quantity](docs/12-update-quantity.md)
+13. [The number and the history](docs/13-two-writes.md)
+14. [What Supabase warns about](docs/14-advisors.md)
+15. [The row after the change](docs/15-row-after-change.md)
 
 [Still to do](docs/TODO.md)
